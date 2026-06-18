@@ -5,7 +5,7 @@ labels: ready-for-agent
 
 ## Parent
 
-`pop3-mailbot-openclaw-bridge` (PRD issue)
+`issues/00-prd.md`
 
 ## What to build
 

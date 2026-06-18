@@ -5,7 +5,7 @@ labels: ready-for-agent
 
 ## Parent
 
-`pop3-mailbot-openclaw-bridge` (PRD issue)
+`issues/00-prd.md`
 
 ## What to build
 
@@ -25,4 +25,4 @@ This slice wires the parser from slice 1 to a POP3 client and a state store. It 
 
 ## Blocked by
 
-- Slice 1: Parse a local `.eml` file and emit the JSON payload
+- `issues/01-parse-eml.md`

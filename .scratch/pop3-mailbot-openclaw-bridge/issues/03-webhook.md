@@ -5,7 +5,7 @@ labels: ready-for-agent
 
 ## Parent
 
-`pop3-mailbot-openclaw-bridge` (PRD issue)
+`issues/00-prd.md`
 
 ## What to build
 
@@ -22,4 +22,4 @@ Add the webhook forwarder and integrate it into the polling loop. For each new m
 
 ## Blocked by
 
-- Slice 2: Poll POP3 mailbox and print new payloads to stdout
+- `issues/02-pop3-poll.md`

@@ -5,7 +5,7 @@ labels: ready-for-agent
 
 ## Parent
 
-`pop3-mailbot-openclaw-bridge` (PRD issue)
+`issues/00-prd.md`
 
 ## What to build
 
@@ -22,4 +22,4 @@ Add focused seam tests and deployment documentation. Tests should exercise exter
 
 ## Blocked by
 
-- Slice 3: Deliver new payloads to the OpenClaw webhook
+- `issues/03-webhook.md`
