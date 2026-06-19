@@ -1,5 +1,5 @@
 ---
-status: ready-for-human
+status: closed
 type: HITL
 estimate: XS
 domain: documentation
@@ -43,11 +43,11 @@ Use the standard ADR format (Michael Nygard's template, which is the convention 
 
 ## Acceptance criteria
 
-- [ ] `docs/adr/001-html-entity-sanitization.md` exists and is well-formatted
-- [ ] All five ADR sections (Context, Decision, Rationale, Consequences, Status) are present
-- [ ] Each decision point includes the alternatives considered and the reasoning for the choice
-- [ ] References the domain context questions that informed the decisions (e.g., sanitization scope, entity-only vs tag stripping, stdlib vs regex, unconditional vs configurable)
-- [ ] A human reviewer can read and understand the architectural decisions without reading the PRD or implementation code
+- [x] `docs/adr/001-html-entity-sanitization.md` exists and is well-formatted
+- [x] All five ADR sections (Context, Decision, Rationale, Consequences, Status) are present
+- [x] Each decision point includes the alternatives considered and the reasoning for the choice
+- [x] References the domain context questions that informed the decisions (e.g., sanitization scope, entity-only vs tag stripping, stdlib vs regex, unconditional vs configurable)
+- [x] A human reviewer can read and understand the architectural decisions without reading the PRD or implementation code
 
 ## Blocked by
 
