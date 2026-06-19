@@ -7,7 +7,7 @@ A lightweight, stdlib-only Python mailbot that polls a POP3 mailbox and forwards
 - Polls a POP3 mailbox on a cron schedule.
 - Detects new messages using `UIDL` tracking across restarts.
 - Leaves messages on the server (no `DELE`).
-- Extracts HTML (canonical) and plain-text (fallback) bodies, decoding HTML character references (e.g. `&amp;`, `&nbsp;`, `&#160;`).
+- Extracts HTML (canonical) and plain-text (fallback) bodies, stripping `<style>` and `<script>` blocks from the HTML and decoding HTML character references (e.g. `&amp;`, `&nbsp;`, `&#160;`).
 - Saves attachments to local disk and references them in the webhook payload.
 - Reads the POP3 password from an environment variable.
 - Configurable data directory for state and attachments.

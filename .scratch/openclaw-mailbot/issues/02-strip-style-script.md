@@ -1,11 +1,11 @@
 ---
-status: ready-for-agent
+status: closed
 type: AFK
 estimate: S
 domain: parsing
-blockedBy: ["openclaw-mailbot-01"]
+blockedBy:
+  - openclaw-mailbot-01
 ---
-
 ## Parent
 
 PRD: `.scratch/openclaw-mailbot/PRD.md`
@@ -82,3 +82,12 @@ Specifically:
 ## Blocked by
 
 - **openclaw-mailbot-01** — depends on `_sanitize_text()` being available and on the entity unescaping fixture infrastructure
+
+
+---
+**Batch processor update**: status changed to `closed` on 2026-06-19.
+- Branch: `batch/openclaw-mailbot/openclaw-mailbot-02`
+- Validation rounds: 1
+- Result artifacts: `.pi\batch-processor\results\openclaw-mailbot-02`
+- Summary: Added _strip_style_script() and _sanitize_html() to parser.py, updated parse_email() to use _sanitize_html() for the html field while keeping _sanitize_text() for plainText, created the style_script.eml fixture and generator, and added four parser tests covering stripping, structure preservation, entity decoding, and regression on emails without style/script blocks.
+- Changed files: src/openclaw_mailbot/parser.py, tests/test_parser.py, tests/fixtures/generate.py, tests/fixtures/style_script.eml
