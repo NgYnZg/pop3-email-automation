@@ -5,9 +5,9 @@ Message-Id: <entities-006@example.com>
 Date: Thu, 18 Jun 2026 14:28:00 +0000
 MIME-Version: 1.0
 Content-Type: multipart/alternative;
- boundary="===============6224909724399170393=="
+ boundary="===============6104651466207635733=="
 
---===============6224909724399170393==
+--===============6104651466207635733==
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
@@ -17,7 +17,7 @@ Quote: &quot;text&quot;
 Space:&nbsp;after&#160;and&#x00A0;hex
 Regular text with no entities.
 
---===============6224909724399170393==
+--===============6104651466207635733==
 Content-Type: text/html; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
@@ -26,4 +26,4 @@ MIME-Version: 1.0
 an &gt;</p><p>Quote: &quot;text&quot;</p><p>Space:&nbsp;after&#160;and&#x00A0=
 ;hex</p><p><b>Bold regular text with no entities.</b></p></body></html>
 
---===============6224909724399170393==--
+--===============6104651466207635733==--

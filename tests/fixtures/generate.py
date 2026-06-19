@@ -104,6 +104,27 @@ def entities() -> EmailMessage:
     return msg
 
 
+def style_script() -> EmailMessage:
+    msg = EmailMessage()
+    msg["From"] = "Style Script Sender <style-script@example.com>"
+    msg["To"] = "you@company.com"
+    msg["Subject"] = "Email with style and script blocks"
+    msg["Message-Id"] = "<style-script-007@example.com>"
+    msg["Date"] = "Wed, 18 Jun 2026 14:28:00 +0000"
+    msg.set_content("This is the plain text fallback.")
+    msg.add_alternative(
+        "<html><head>"
+        "<style type=\"text/css\">.body { color: red; font-size: 14px; }</style>"
+        "</head><body>"
+        "<p>Hello <b>world</b></p>"
+        "<script>console.log(\"hello\");</script>"
+        "<p>Entities: Tom &amp; Jerry</p>"
+        "</body></html>",
+        subtype="html",
+    )
+    return msg
+
+
 if __name__ == "__main__":
     write_fixture("plain_only.eml", plain_only())
     write_fixture("html_only.eml", html_only())
@@ -111,3 +132,4 @@ if __name__ == "__main__":
     write_fixture("unicode.eml", unicode_content())
     write_fixture("with_attachment.eml", with_attachment())
     write_fixture("entities.eml", entities())
+    write_fixture("style_script.eml", style_script())

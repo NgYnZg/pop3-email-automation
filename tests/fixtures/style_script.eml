@@ -1,0 +1,25 @@
+From: Style Script Sender <style-script@example.com>
+To: you@company.com
+Subject: Email with style and script blocks
+Message-Id: <style-script-007@example.com>
+Date: Thu, 18 Jun 2026 14:28:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============5396631116146838504=="
+
+--===============5396631116146838504==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+This is the plain text fallback.
+
+--===============5396631116146838504==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><head><style type=3D"text/css">.body { color: red; font-size: 14px; }</=
+style></head><body><p>Hello <b>world</b></p><script>console.log("hello");</sc=
+ript><p>Entities: Tom &amp; Jerry</p></body></html>
+
+--===============5396631116146838504==--
