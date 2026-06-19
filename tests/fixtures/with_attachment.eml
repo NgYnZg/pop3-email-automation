@@ -1,0 +1,23 @@
+From: Attachment Sender <attachment@example.com>
+To: you@company.com
+Subject: Email with attachment
+Message-Id: <attachment-005@example.com>
+Date: Thu, 18 Jun 2026 14:28:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2832399884890555622=="
+
+--===============2832399884890555622==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Please find the invoice attached.
+
+--===============2832399884890555622==
+Content-Type: application/pdf
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="invoice.pdf"
+MIME-Version: 1.0
+
+JVBERi0xLjQgZmFrZSBwZGYgY29udGVudCBmb3IgdGVzdGluZw==
+
+--===============2832399884890555622==--

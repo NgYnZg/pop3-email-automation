@@ -1,0 +1,10 @@
+From: Sender Name <sender@example.com>
+To: you@company.com
+Subject: Plain text email
+Message-Id: <plain-only-001@example.com>
+Date: Thu, 18 Jun 2026 14:28:00 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+This is the plain text body.

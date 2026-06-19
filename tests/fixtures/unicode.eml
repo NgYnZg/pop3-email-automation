@@ -1,0 +1,10 @@
+From: Unicode Sender <unicode@example.com>
+To: recipient@company.com
+Subject: Unicode: =?utf-8?b?5L2g5aW95LiW55WMIPCfjI0=?=
+Message-Id: <unicode-004@example.com>
+Date: Thu, 18 Jun 2026 14:28:00 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+こんにちは、世界！ Это тестовое сообщение.
