@@ -77,9 +77,37 @@ def with_attachment() -> EmailMessage:
     return msg
 
 
+def entities() -> EmailMessage:
+    msg = EmailMessage()
+    msg["From"] = "Entity Sender <entities@example.com>"
+    msg["To"] = "you@company.com"
+    msg["Subject"] = "Email with HTML entities"
+    msg["Message-Id"] = "<entities-006@example.com>"
+    msg["Date"] = "Wed, 18 Jun 2026 14:28:00 +0000"
+    msg.set_content(
+        "Price: &pound;10 &amp; &euro;5\n"
+        "Less than &lt; greater than &gt;\n"
+        'Quote: &quot;text&quot;\n'
+        "Space:&nbsp;after&#160;and&#x00A0;hex\n"
+        "Regular text with no entities."
+    )
+    msg.add_alternative(
+        "<html><body>"
+        "<p>Price: &pound;10 &amp; &euro;5</p>"
+        "<p>Less than &lt; greater than &gt;</p>"
+        '<p>Quote: &quot;text&quot;</p>'
+        "<p>Space:&nbsp;after&#160;and&#x00A0;hex</p>"
+        "<p><b>Bold regular text with no entities.</b></p>"
+        "</body></html>",
+        subtype="html",
+    )
+    return msg
+
+
 if __name__ == "__main__":
     write_fixture("plain_only.eml", plain_only())
     write_fixture("html_only.eml", html_only())
     write_fixture("mixed.eml", mixed())
     write_fixture("unicode.eml", unicode_content())
     write_fixture("with_attachment.eml", with_attachment())
+    write_fixture("entities.eml", entities())

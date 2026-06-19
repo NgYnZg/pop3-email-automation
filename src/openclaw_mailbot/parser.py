@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import re
 from datetime import datetime, timezone
@@ -74,6 +75,11 @@ def _identifier(message: Message, uidl: str = "") -> str:
         return re.sub(r"[^\w@.+-]+", "_", message_id.strip("<>")).strip("._")
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     return f"no-message-id-{timestamp}"
+
+
+def _sanitize_text(text: str) -> str:
+    """Decode HTML character references to their Unicode codepoints."""
+    return html.unescape(text)
 
 
 def _extract_bodies(message: Message) -> tuple[str | None, str | None]:
@@ -181,6 +187,10 @@ def parse_email(
         raise EmailParseError("Parsed message is not a Message instance")
 
     html, plain = _extract_bodies(message)
+    if html is not None:
+        html = _sanitize_text(html)
+    if plain is not None:
+        plain = _sanitize_text(plain)
     identifier = _identifier(message, uidl)
     attachments_dir = data_dir / "attachments" / run_timestamp / identifier
     attachments = _extract_attachments(message, attachments_dir)

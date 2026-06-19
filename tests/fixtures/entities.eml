@@ -1,0 +1,29 @@
+From: Entity Sender <entities@example.com>
+To: you@company.com
+Subject: Email with HTML entities
+Message-Id: <entities-006@example.com>
+Date: Thu, 18 Jun 2026 14:28:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============6224909724399170393=="
+
+--===============6224909724399170393==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Price: &pound;10 &amp; &euro;5
+Less than &lt; greater than &gt;
+Quote: &quot;text&quot;
+Space:&nbsp;after&#160;and&#x00A0;hex
+Regular text with no entities.
+
+--===============6224909724399170393==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><body><p>Price: &pound;10 &amp; &euro;5</p><p>Less than &lt; greater th=
+an &gt;</p><p>Quote: &quot;text&quot;</p><p>Space:&nbsp;after&#160;and&#x00A0=
+;hex</p><p><b>Bold regular text with no entities.</b></p></body></html>
+
+--===============6224909724399170393==--
