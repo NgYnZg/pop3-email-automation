@@ -139,6 +139,46 @@ class ParserTests(unittest.TestCase):
         self.assertIn("html", payload)
         self.assertIn("plainText", payload)
 
+    def test_style_script_stripped(self) -> None:
+        payload = parse_email(FIXTURES / "style_script.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("html", payload)
+        html = payload["html"]
+        self.assertNotIn("color: red", html)
+        self.assertNotIn("font-size: 14px", html)
+        self.assertNotIn("console.log", html)
+        self.assertNotIn("<style", html)
+        self.assertNotIn("<script", html)
+
+    def test_html_structure_preserved(self) -> None:
+        payload = parse_email(FIXTURES / "style_script.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("html", payload)
+        html = payload["html"]
+        self.assertIn("<p>", html)
+        self.assertIn("<b>world</b>", html)
+        self.assertIn("Hello", html)
+        self.assertIn("</body>", html)
+        self.assertIn("</html>", html)
+
+    def test_style_script_entities(self) -> None:
+        payload = parse_email(FIXTURES / "style_script.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("html", payload)
+        html = payload["html"]
+        self.assertIn("Tom & Jerry", html)
+        self.assertNotIn("&amp;", html)
+
+    def test_style_script_absent(self) -> None:
+        payload = parse_email(FIXTURES / "mixed.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("html", payload)
+        html = payload["html"]
+        self.assertEqual(
+            html,
+            "<html><body><p>This is the <b>HTML</b> body.</p></body></html>\n",
+        )
+
 
 class ConfigTests(unittest.TestCase):
     """Config loading tests."""

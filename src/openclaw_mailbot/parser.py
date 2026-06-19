@@ -77,9 +77,26 @@ def _identifier(message: Message, uidl: str = "") -> str:
     return f"no-message-id-{timestamp}"
 
 
+_STYLE_SCRIPT_RE = re.compile(
+    r'<style[^>]*>.*?</style>|<script[^>]*>.*?</script>',
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _strip_style_script(html_text: str) -> str:
+    """Remove <style> and <script> elements and their contents."""
+    return _STYLE_SCRIPT_RE.sub("", html_text)
+
+
 def _sanitize_text(text: str) -> str:
     """Decode HTML character references to their Unicode codepoints."""
     return html.unescape(text)
+
+
+def _sanitize_html(text: str) -> str:
+    """Strip style/script blocks and decode HTML character references."""
+    text = _strip_style_script(text)
+    return _sanitize_text(text)
 
 
 def _extract_bodies(message: Message) -> tuple[str | None, str | None]:
@@ -188,7 +205,7 @@ def parse_email(
 
     html, plain = _extract_bodies(message)
     if html is not None:
-        html = _sanitize_text(html)
+        html = _sanitize_html(html)
     if plain is not None:
         plain = _sanitize_text(plain)
     identifier = _identifier(message, uidl)
