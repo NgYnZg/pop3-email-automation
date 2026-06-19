@@ -47,6 +47,62 @@ class ParserTests(unittest.TestCase):
         self.assertIn("<b>HTML</b>", payload["html"])
         self.assertEqual(payload["attachments"], [])
 
+    def test_entities_plain_text(self) -> None:
+        payload = parse_email(FIXTURES / "entities.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("plainText", payload)
+        plain = payload["plainText"]
+        self.assertIn("£", plain)
+        self.assertIn("&", plain)
+        self.assertIn("€", plain)
+        self.assertIn("<", plain)
+        self.assertIn(">", plain)
+        self.assertIn('"', plain)
+        self.assertIn("\u00A0", plain)
+        self.assertNotIn("&pound;", plain)
+        self.assertNotIn("&euro;", plain)
+        self.assertNotIn("&amp;", plain)
+        self.assertNotIn("&nbsp;", plain)
+
+    def test_entities_html(self) -> None:
+        payload = parse_email(FIXTURES / "entities.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("html", payload)
+        html = payload["html"]
+        self.assertIn("£", html)
+        self.assertIn("&", html)
+        self.assertIn("€", html)
+        self.assertIn("<", html)
+        self.assertIn(">", html)
+        self.assertIn('"', html)
+        self.assertIn("\u00A0", html)
+        self.assertIn("<b>", html)
+        self.assertIn("</b>", html)
+        self.assertNotIn("&pound;", html)
+        self.assertNotIn("&euro;", html)
+        self.assertNotIn("&amp;", html)
+        self.assertNotIn("&nbsp;", html)
+
+    def test_numeric_entities(self) -> None:
+        payload = parse_email(FIXTURES / "entities.eml", self.data_dir, "20260618-143000")
+
+        self.assertIn("\u00A0", payload["plainText"])
+        self.assertIn("\u00A0", payload["html"])
+        self.assertNotIn("&#160;", payload["plainText"])
+        self.assertNotIn("&#x00A0;", payload["plainText"])
+        self.assertNotIn("&#160;", payload["html"])
+        self.assertNotIn("&#x00A0;", payload["html"])
+
+    def test_no_entities_unchanged(self) -> None:
+        plain_payload = parse_email(FIXTURES / "plain_only.eml", self.data_dir, "20260618-143000")
+        self.assertEqual(plain_payload["plainText"].strip(), "This is the plain text body.")
+
+        html_payload = parse_email(FIXTURES / "html_only.eml", self.data_dir, "20260618-143000")
+        self.assertEqual(
+            html_payload["html"],
+            "<html><body><p>This is the <b>HTML</b> body.</p></body></html>\n",
+        )
+
     def test_mixed(self) -> None:
         payload = parse_email(FIXTURES / "mixed.eml", self.data_dir, "20260618-143000")
 
