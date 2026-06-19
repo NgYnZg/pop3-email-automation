@@ -28,3 +28,6 @@ mailbot-data/
 
 # Test artifacts
 .pytest_cache/
+
+# Config files
+config.ini

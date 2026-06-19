@@ -1,0 +1,47 @@
+{
+  "questions": [
+    {
+      "id": "sanitization-scope-fields",
+      "question": "Which payload fields should the sanitization apply to? The request mentions 'the parser need to filter them out' but doesn't specify whether this targets the `html` field, the `plainText` field, or both. Currently `_extract_bodies()` returns raw decoded text for both parts independently. Real-world emails sometimes embed HTML entities in the `text/plain` part too (e.g., newsletters that auto-generate both MIME alternatives). Do we sanitize both fields, or only `html`?",
+      "recommendedAnswer": "Sanitize both `html` and `plainText` fields. The plainText field comes from the email's own `text/plain` MIME part; real-world senders often write `&nbsp;` into the plain text alternative as well. If we only sanitize `html`, the token-waste problem is only half-solved. The prior PRD's 'no HTML-to-plaintext conversion' refers to generating plain text from HTML (a lossy process), not to cleaning the existing plain text part.",
+      "userAnswer": "use your recommendation"
+    },
+    {
+      "id": "entity-unescaping-vs-tag-stripping",
+      "question": "Does 'wasteful characters' include HTML tags themselves (e.g., `<style>`, `<div>`, `<span>`) or only HTML entities (e.g., `&amp;`, `&nbsp;`, `&lt;`)? The feature request mentions `&nbsp;` and 'other tags' — this is ambiguous between named character references and markup tags. Tag stripping on the `html` field would violate the prior PRD's explicit 'No HTML-to-plaintext conversion' decision, because OpenClaw workflows currently register for `email.received` events and may depend on the HTML structure being intact for their own rendering logic.",
+      "recommendedAnswer": "Only HTML entities should be unescaped — not tags stripped. HTML entities (like `&nbsp;`, `&amp;`, `&lt;`, `&gt;`, `&#160;`) are character references that waste tokens without adding semantic structure. HTML tags like `<div>`, `<span>`, `<style>` are structural; stripping them changes the semantics of the `html` field and violates the prior PRD's 'No HTML-to-plaintext conversion' exclusion. OpenClaw workflows may depend on HTML markup for their own rendering. However, the content inside `<style>` and `<script>` blocks (CSS/JS source text) is a separate concern — it is not markup, it is data that inflates payload size with no useful information for downstream workflows and could be stripped from the `html` field without breaking structural semantics.",
+      "userAnswer": "only HTML entities."
+    },
+    {
+      "id": "entity-coverage-set",
+      "question": "What is the minimum set of HTML entities that must be supported? HTML5 defines 2231 named character references. Supporting all of them with the stdlib-only constraint (using `html.parser.HTMLParser.unescape()`) is straightforward since that function is built-in. But if we use regex-based replacement instead (for performance on large bodies), we need a defined subset. Should we support all HTML5 named entities (via `html.unescape()`), only a common subset (`` &amp; &lt; &gt; &quot; &nbsp; &#160; ``), or also numeric entities and hex entities?",
+      "recommendedAnswer": "Use `html.parser.HTMLParser.unescape()` (Python 3.4+) — it is in the stdlib, handles all HTML5 named entities and all numeric/hex entities correctly, and is the simplest correct solution. Adding `from html import unescape` to `parser.py` is a one-line import with zero dependencies. A regex approach would be slower, more error-prone, and harder to maintain. The `html.unescape()` function is O(n) and well-tested in CPython. There is no need to define a subset — the stdlib function handles exactly what we need.",
+      "userAnswer": "use your reconmmendation."
+    },
+    {
+      "id": "nbsp-semantic-preservation",
+      "question": "Should `&nbsp;` be unescaped to U+00A0 (non-breaking space, the semantically correct character) or replaced with U+0020 (regular space)? The token-waste concern about `&nbsp;` is that it adds Unicode codepoints that don't carry meaning for downstream text processing. If we unescape to U+00A0, downstream systems that do string matching or token counting may still treat it differently from a regular space. If we replace with U+0020, we lose the non-breaking semantics. Which behavior should we implement?",
+      "recommendedAnswer": "Unescape to the semantically correct character U+00A0 via `html.unescape()`. The token-waste problem is that `&nbsp;` is 6 ASCII characters encoded into the JSON payload, while U+00A0 is a single UTF-8 codepoint (2 bytes). That's a net reduction from 6 bytes to 2 bytes per occurrence. Converting to U+0020 (regular space) is semantically lossy — some downstream workflows may need to render text faithfully. If downstream consumers want to normalize ascii spaces, that's their responsibility. Our job is faithful character decoding.",
+      "userAnswer": "use your recommendation"
+    },
+    {
+      "id": "style-script-stripping",
+      "question": "Should the contents of `<style>` and `<script>` tags be stripped from the `html` field? In real-world HTML emails (especially marketing/newsletters), CSS blocks routinely account for 60-80% of the raw HTML size and contain zero useful information for downstream workflow processing. Stripping them is not 'HTML-to-plaintext conversion' — it removes data that is not part of the visible document content. However, it is a form of filtering, which the prior PRD's Out of Scope section listed as excluded. Is this in scope for this feature?",
+      "recommendedAnswer": "Yes, `<style>` and `<script>` block contents should be removed from the `html` field. This is not 'HTML-to-plaintext conversion' (which means stripping all structural tags) — it is removing non-content data regions that are never rendered as visible text. CSS and JS source text are code, not document content. The prior PRD's 'No filtering' exclusion refers to message-level filtering (by sender, subject, attachment type), not content-level sanitization. This is a substantively different axis. A simple regex or `html.parser.HTMLParser` subclass can drop these blocks without breaking structural HTML around them.",
+      "userAnswer": "use your recommendation"
+    },
+    {
+      "id": "payload-contract-backward-compatibility",
+      "question": "Should the sanitization modify the existing `html` and `plainText` fields in-place, or should new fields be added (e.g., `htmlClean`, `plainTextClean`) to preserve backward compatibility? The forwarder is a thin JSON POST — it does not inspect fields. Any change to the `html` or `plainText` values is automatically sent to the OpenClaw webhook. If existing OpenClaw workflows depend on `&amp;` being present in URLs within the HTML, unescaping could silently break those workflows. Should we version the contract or accept the breaking change?",
+      "recommendedAnswer": "Modify the existing `html` and `plainText` fields in-place. This is a prototype with no production OpenClaw workflows yet (the repo is a new project). Adding parallel fields bloats the payload for no proven benefit. If backward compatibility becomes necessary later, a `parserVersion` or `sanitized: true` field can be added. For now, the simpler contract is correct. Document this decision in the PRD so the first OpenClaw workflow author knows that HTML entities are decoded.",
+      "userAnswer": "use your recommendation"
+    },
+    {
+      "id": "sanitization-dry-run-mode",
+      "question": "Should the sanitization be unconditionally applied, or should a configuration option (e.g., `sanitize_html = true/false`) control whether entities are unescaped and style/script blocks are stripped? The prior PRD's 'no filtering' decision was intentionally permissive during early testing. An operator who wants raw HTML (e.g., for debugging what the email actually contained) would be unable to get it if sanitization is hardcoded. Also, if the sanitization introduces a bug, there's no escape hatch without a code change.",
+      "recommendedAnswer": "Apply unconditionally in the first slice. Adding a config flag introduces a config surface (INI parsing, documentation, testing) that delays the core feature. The fix is simple and well-understood (`html.unescape()`, style/script stripping) — the risk of a bug is low. If operators need raw HTML for debugging, they can inspect the original `.eml` files in the POP3 mailbox or add a `--verbose` flag that dumps the raw payload before sanitization. Escalating to a config option should be a separate follow-up issue if someone actually needs it.",
+      "userAnswer": "use your recommendation\n\n# Summary\n\nAdd any additional clarifications or correction"
+    }
+  ],
+  "summary": "Add any additional clarifications or correction"
+}
