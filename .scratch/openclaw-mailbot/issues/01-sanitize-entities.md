@@ -1,11 +1,10 @@
 ---
-status: ready-for-agent
+status: closed
 type: AFK
 estimate: S
 domain: parsing
-blockedBy: []
+blockedBy:
 ---
-
 ## Parent
 
 PRD: `.scratch/openclaw-mailbot/PRD.md`
@@ -57,3 +56,12 @@ Specifically:
 ## Blocked by
 
 None — can start immediately.
+
+
+---
+**Batch processor update**: status changed to `closed` on 2026-06-19.
+- Branch: `batch/openclaw-mailbot/openclaw-mailbot-01`
+- Validation rounds: 1
+- Result artifacts: `.pi\batch-processor\results\openclaw-mailbot-01`
+- Summary: Added `_sanitize_text()` to `src/openclaw_mailbot/parser.py` using stdlib `html.unescape()`, wired it into `parse_email()` for both `html` and `plainText` immediately after `_extract_bodies()`, created the `entities()` fixture generator and `entities.eml` with named/numeric entities in both MIME parts, and added `test_entities_plain_text`, `test_entities_html`, `test_numeric_entities`, and `test_no_entities_unchanged` to `tests/test_parser.py`.
+- Changed files: src/openclaw_mailbot/parser.py, tests/fixtures/generate.py, tests/test_parser.py, tests/fixtures/entities.eml

@@ -7,7 +7,7 @@ A lightweight, stdlib-only Python mailbot that polls a POP3 mailbox and forwards
 - Polls a POP3 mailbox on a cron schedule.
 - Detects new messages using `UIDL` tracking across restarts.
 - Leaves messages on the server (no `DELE`).
-- Extracts HTML (canonical) and plain-text (fallback) bodies.
+- Extracts HTML (canonical) and plain-text (fallback) bodies, decoding HTML character references (e.g. `&amp;`, `&nbsp;`, `&#160;`).
 - Saves attachments to local disk and references them in the webhook payload.
 - Reads the POP3 password from an environment variable.
 - Configurable data directory for state and attachments.
@@ -84,7 +84,7 @@ uv run openclaw-mailbot parse path/to/email.eml
 
 ## Project layout
 
-- `src/openclaw_mailbot/parser.py` — RFC 2822 parsing and attachment extraction.
+- `src/openclaw_mailbot/parser.py` — RFC 2822 parsing, HTML entity decoding, and attachment extraction.
 - `src/openclaw_mailbot/pop3.py` — POP3 transport and client.
 - `src/openclaw_mailbot/state.py` — UIDL persistence.
 - `src/openclaw_mailbot/forwarder.py` — Webhook POST.
