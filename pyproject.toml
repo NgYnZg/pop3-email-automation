@@ -6,7 +6,13 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.scripts]
+mailbot = "openclaw_mailbot.cli:main"
 openclaw-mailbot = "openclaw_mailbot.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.0",
+]
 
 [build-system]
 requires = ["hatchling"]

@@ -94,11 +94,12 @@ class ConfigTests(unittest.TestCase):
 host = pop.example.com
 port = 110
 username = user
+use_ssl = false
 
-[mailbot]
+[storage]
 data_dir = /tmp/mailbot-data
 
-[forwarder]
+[openclaw]
 webhook_url = https://example.com/webhook
 timeout_seconds = 10
 """)
@@ -108,6 +109,7 @@ timeout_seconds = 10
             self.assertEqual(config.pop3_host, "pop.example.com")
             self.assertEqual(config.pop3_port, 110)
             self.assertEqual(config.pop3_username, "user")
+            self.assertFalse(config.pop3_use_ssl)
             self.assertEqual(config.data_dir, Path("/tmp/mailbot-data").resolve())
             self.assertEqual(config.webhook_url, "https://example.com/webhook")
             self.assertEqual(config.webhook_timeout_seconds, 10.0)
@@ -118,7 +120,7 @@ timeout_seconds = 10
         with tempfile.TemporaryDirectory() as env_dir:
             with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as fh:
                 fh.write("""
-[mailbot]
+[storage]
 data_dir = /ini/data/dir
 """)
                 path = Path(fh.name)

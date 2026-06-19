@@ -6,19 +6,19 @@ Message-Id: <mixed-003@example.com>
 Date: Thu, 18 Jun 2026 14:28:00 +0000
 MIME-Version: 1.0
 Content-Type: multipart/alternative;
- boundary="===============7338796629804774337=="
+ boundary="===============7981801144559972199=="
 
---===============7338796629804774337==
+--===============7981801144559972199==
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
 This is the plain text fallback.
 
---===============7338796629804774337==
+--===============7981801144559972199==
 Content-Type: text/html; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
 
 <html><body><p>This is the <b>HTML</b> body.</p></body></html>
 
---===============7338796629804774337==--
+--===============7981801144559972199==--

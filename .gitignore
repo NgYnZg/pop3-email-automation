@@ -19,3 +19,12 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# PI batch processor
+.pi/
+
+# Local mailbot data
+mailbot-data/
+
+# Test artifacts
+.pytest_cache/

@@ -65,11 +65,12 @@ def _sanitized_filename(raw: str | None) -> str:
     return "unnamed-attachment"
 
 
-def _identifier(message: Message) -> str:
-    """Return a stable identifier for the message (mock UIDL)."""
+def _identifier(message: Message, uidl: str = "") -> str:
+    """Return a stable identifier for the message."""
+    if uidl:
+        return re.sub(r"[^\w@.+-]+", "_", uidl).strip("._")
     message_id = message.get("Message-Id", "")
     if message_id:
-        # Strip angle brackets and sanitize for filesystem use.
         return re.sub(r"[^\w@.+-]+", "_", message_id.strip("<>")).strip("._")
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     return f"no-message-id-{timestamp}"
@@ -151,21 +152,26 @@ def _extract_attachments(
 
 
 def parse_email(
-    source: BinaryIO | Path | str,
+    source: BinaryIO | Path | str | bytes,
     data_dir: Path,
     run_timestamp: str | None = None,
+    uidl: str = "",
 ) -> dict:
-    """Parse a local ``.eml`` file and return the OpenClaw payload dict.
+    """Parse an email and return the OpenClaw payload dict.
 
     Args:
-        source: A file-like object opened in binary mode, or a path to the file.
+        source: A file-like object opened in binary mode, bytes, or a path.
         data_dir: Base directory for saving attachments.
         run_timestamp: Timestamp directory for this run (defaults to now).
+        uidl: The POP3 UIDL for this message (used as directory identifier).
     """
     if run_timestamp is None:
         run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
 
-    if isinstance(source, (str, Path)):
+    if isinstance(source, bytes):
+        from io import BytesIO
+        message = message_from_binary_file(BytesIO(source), policy=policy.default)
+    elif isinstance(source, (str, Path)):
         with Path(source).open("rb") as fh:
             message = message_from_binary_file(fh, policy=policy.default)
     else:
@@ -175,15 +181,14 @@ def parse_email(
         raise EmailParseError("Parsed message is not a Message instance")
 
     html, plain = _extract_bodies(message)
-    identifier = _identifier(message)
+    identifier = _identifier(message, uidl)
     attachments_dir = data_dir / "attachments" / run_timestamp / identifier
     attachments = _extract_attachments(message, attachments_dir)
 
-    # Build the payload in the canonical order described in the PRD.
     result: dict[str, object] = {
         "event": "email.received",
         "messageId": message.get("Message-Id", ""),
-        "uidl": identifier,
+        "uidl": uidl or identifier,
         "receivedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "from": _clean_address(message.get("From", "")),
         "to": _clean_address_list(message.get("To", "")),
@@ -203,10 +208,11 @@ def parse_email(
 
 
 def parse_email_json(
-    source: BinaryIO | Path | str,
+    source: BinaryIO | Path | str | bytes,
     data_dir: Path,
     run_timestamp: str | None = None,
+    uidl: str = "",
 ) -> str:
-    """Parse a local ``.eml`` file and return the payload as JSON."""
-    payload = parse_email(source, data_dir, run_timestamp)
+    """Parse an email and return the payload as JSON."""
+    payload = parse_email(source, data_dir, run_timestamp, uidl)
     return json.dumps(payload, indent=2, ensure_ascii=False)

@@ -1,92 +1,92 @@
-# openclaw-mailbot
+# OpenClaw Mailbot
 
-A lightweight Python mailbot that polls a POP3 mailbox and triggers OpenClaw workflows via webhook.
+A lightweight, stdlib-only Python mailbot that polls a POP3 mailbox and forwards incoming emails to an OpenClaw webhook. It leaves messages on the POP3 server, tracks already-processed messages by `UIDL`, and retries failed webhook deliveries on the next poll.
 
-This repository is the prototype / first vertical slice. It currently parses local `.eml` files and emits the structured JSON payload that will later be forwarded to OpenClaw.
+## Features
 
-## Project setup
+- Polls a POP3 mailbox on a cron schedule.
+- Detects new messages using `UIDL` tracking across restarts.
+- Leaves messages on the server (no `DELE`).
+- Extracts HTML (canonical) and plain-text (fallback) bodies.
+- Saves attachments to local disk and references them in the webhook payload.
+- Reads the POP3 password from an environment variable.
+- Configurable data directory for state and attachments.
 
-This project uses [`uv`](https://docs.astral.sh/uv/) and requires Python 3.11+. There are no runtime dependencies beyond the Python standard library.
+## Install
+
+This project is managed with [`uv`](https://docs.astral.sh/uv/). Clone the repository and install dependencies:
 
 ```bash
 uv sync
 ```
 
-## Usage
+There are no runtime dependencies beyond the Python standard library.
 
-Parse a local `.eml` file:
+## Configuration
 
-```bash
-uv run openclaw-mailbot parse tests/fixtures/mixed.eml --config config.example.ini
-```
-
-The command prints a JSON payload to stdout and saves any attachments under the configured data directory.
-
-### Configuration
-
-Copy `config.example.ini` to `config.ini` and edit as needed:
+Create an INI file, for example `config.example.ini`:
 
 ```ini
 [pop3]
 host = pop.example.com
 port = 995
 username = mailbot@example.com
+use_ssl = true
 
-[mailbot]
+[storage]
 data_dir = /var/lib/openclaw-mailbot
 
-[forwarder]
-webhook_url = https://openclaw.example.com/webhooks/email
+[openclaw]
+webhook_url = https://openclaw.example.com/hooks/email
 timeout_seconds = 30
 ```
 
-The data directory can also be overridden with the `MAILBOT_DATA_DIR` environment variable. The POP3 password is read from `POP3_PASSWORD` (not used in this slice).
+## Required environment variables
 
-## Output JSON shape
+| Variable | Purpose |
+|----------|---------|
+| `POP3_PASSWORD` | Password for the POP3 account. Never store this in the INI file. |
+| `MAILBOT_DATA_DIR` | Optional override for the data directory configured in `storage.data_dir`. |
 
-```json
-{
-  "event": "email.received",
-  "messageId": "<abc123@sender.com>",
-  "receivedAt": "2026-06-18T14:30:00Z",
-  "from": { "address": "sender@example.com", "name": "Sender Name" },
-  "to": [{ "address": "you@company.com", "name": "" }],
-  "cc": [],
-  "subject": "...",
-  "date": "2026-06-18T14:28:00Z",
-  "plainText": "...",
-  "html": "...",
-  "attachments": [
-    {
-      "filename": "invoice.pdf",
-      "path": "/var/lib/openclaw-mailbot/attachments/20260618-143000/abc123@sender.com/invoice.pdf",
-      "contentType": "application/pdf",
-      "sizeBytes": 12345
-    }
-  ]
-}
-```
-
-`html` is canonical and `plainText` is the fallback. Either field may be omitted if the corresponding body part is absent.
-
-## Running tests
+Example for a single run:
 
 ```bash
+export POP3_PASSWORD="super-secret"
+export MAILBOT_DATA_DIR="/var/lib/openclaw-mailbot"
+uv run openclaw-mailbot --config config.example.ini poll
+```
+
+## Cron setup
+
+Run the mailbot every 5 minutes from the user account that owns the data directory:
+
+```cron
+*/5 * * * * cd /opt/openclaw-mailbot && POP3_PASSWORD="super-secret" MAILBOT_DATA_DIR="/var/lib/openclaw-mailbot" /usr/local/bin/uv run openclaw-mailbot --config config.example.ini poll >> /var/log/openclaw-mailbot.log 2>&1
+```
+
+Cron will email any stderr output to the user by default, making failures visible.
+
+## Development
+
+Run the seam tests with:
+
+```bash
+uv run pytest -v
+# or
 uv run python -m unittest discover -s tests -v
 ```
 
-## Fixtures
-
-The parser tests are driven by RFC 2822 fixtures in `tests/fixtures/`:
-
-- `plain_only.eml` — text/plain body only
-- `html_only.eml` — text/html body only
-- `mixed.eml` — multipart/alternative with both plain and HTML
-- `unicode.eml` — unicode subject and body content
-- `with_attachment.eml` — mixed email with a PDF attachment
-
-Regenerate fixtures with:
+Parse a local .eml file:
 
 ```bash
-uv run python tests/fixtures/generate.py
+uv run openclaw-mailbot parse path/to/email.eml
 ```
+
+## Project layout
+
+- `src/openclaw_mailbot/parser.py` — RFC 2822 parsing and attachment extraction.
+- `src/openclaw_mailbot/pop3.py` — POP3 transport and client.
+- `src/openclaw_mailbot/state.py` — UIDL persistence.
+- `src/openclaw_mailbot/forwarder.py` — Webhook POST.
+- `src/openclaw_mailbot/poll.py` — Poll orchestration.
+- `src/openclaw_mailbot/cli.py` — Command-line entry point.

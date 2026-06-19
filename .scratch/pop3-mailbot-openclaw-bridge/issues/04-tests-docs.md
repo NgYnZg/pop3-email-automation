@@ -1,5 +1,5 @@
 ---
-status: ready-for-agent
+status: closed
 labels: ready-for-agent
 ---
 
