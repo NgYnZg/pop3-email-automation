@@ -56,6 +56,24 @@ export MAILBOT_DATA_DIR="/var/lib/openclaw-mailbot"
 uv run openclaw-mailbot --config config.example.ini poll
 ```
 
+## Testing the POP3 connection and parser before enabling the webhook
+
+The `test` subcommand connects to the configured POP3 server, parses each new message, prints the JSON payload to stdout, and marks messages as processed. It does **not** forward to the OpenClaw webhook and does **not** require `webhook_url`.
+
+```bash
+export POP3_PASSWORD="super-secret"
+uv run openclaw-mailbot --config config.example.ini test
+```
+
+This is useful for verifying:
+
+- POP3 host, port, username, and password.
+- UIDL tracking and state persistence.
+- Body extraction and HTML entity/style/script sanitization.
+- Attachment saving paths.
+
+Because parsed messages are marked as processed, a second `test` run will not re-fetch the same messages. Delete `<data_dir>/state.json` to re-test from scratch.
+
 ## Cron setup
 
 Run the mailbot every 5 minutes from the user account that owns the data directory:
@@ -80,6 +98,13 @@ Parse a local .eml file:
 
 ```bash
 uv run openclaw-mailbot parse path/to/email.eml
+```
+
+Test the full POP3 + parser path without forwarding:
+
+```bash
+export POP3_PASSWORD="super-secret"
+uv run openclaw-mailbot --config config.example.ini test
 ```
 
 ## Project layout

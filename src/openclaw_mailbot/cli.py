@@ -9,7 +9,7 @@ from pathlib import Path
 
 from openclaw_mailbot.config import Config
 from openclaw_mailbot.parser import parse_email_json
-from openclaw_mailbot.poll import create_forwarder, create_pop3_client, poll
+from openclaw_mailbot.poll import create_forwarder, create_pop3_client, parse_only, poll
 from openclaw_mailbot.state import StateStore
 
 
@@ -37,6 +37,19 @@ def _cmd_poll(args: argparse.Namespace) -> int:
     pop3_client = create_pop3_client(config)
     forwarder = create_forwarder(config)
     poll(config, state_store, pop3_client, forwarder)
+    return 0
+
+
+def _cmd_test(args: argparse.Namespace) -> int:
+    """Handle the ``test`` subcommand."""
+    config = Config.load(args.config)
+    if not config.pop3_host:
+        logging.getLogger(__name__).error("Missing [pop3] host in config")
+        return 1
+
+    state_store = StateStore(config.data_dir)
+    pop3_client = create_pop3_client(config)
+    parse_only(config, state_store, pop3_client)
     return 0
 
 
@@ -79,6 +92,12 @@ def main(argv: list[str] | None = None) -> int:
 
     poll_cmd = subparsers.add_parser("poll", help="Poll the POP3 mailbox once")
     poll_cmd.set_defaults(func=_cmd_poll)
+
+    test_cmd = subparsers.add_parser(
+        "test",
+        help="Connect to the POP3 server, parse all messages, and print payloads without forwarding",
+    )
+    test_cmd.set_defaults(func=_cmd_test)
 
     args = parser.parse_args(argv)
     return args.func(args)
