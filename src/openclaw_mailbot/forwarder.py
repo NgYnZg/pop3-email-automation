@@ -6,18 +6,6 @@ import json
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from typing import Protocol
-
-
-class WebhookForwarder(Protocol):
-    """Protocol for a webhook forwarder implementation."""
-
-    def send(self, payload: dict) -> "ForwardResult":
-        """Send *payload* to the configured webhook.
-
-        Returns a ``ForwardResult`` indicating success or failure.
-        """
-        ...
 
 
 @dataclass(frozen=True)
@@ -65,22 +53,3 @@ class UrllibWebhookForwarder:
             )
         except Exception as exc:
             return ForwardResult(ok=False, error=str(exc))
-
-
-class RecordingWebhookForwarder:
-    """Forwarder that records payloads without making network calls."""
-
-    def __init__(self) -> None:
-        self.payloads: list[dict] = []
-        self.results: list[ForwardResult] = []
-
-    def set_results(self, results: list[ForwardResult]) -> None:
-        """Configure the results to return for successive calls."""
-        self.results = list(results)
-        self.payloads = []
-
-    def send(self, payload: dict) -> ForwardResult:
-        self.payloads.append(payload)
-        if self.results:
-            return self.results.pop(0)
-        return ForwardResult(ok=True)

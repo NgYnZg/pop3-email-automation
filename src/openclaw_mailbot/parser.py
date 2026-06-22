@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import html
+import html as _html
 import json
 import re
 from datetime import datetime, timezone
 from email import message_from_binary_file, policy
 from email.message import Message
 from email.utils import parseaddr, parsedate_to_datetime
+from io import BytesIO
 from pathlib import Path
 from typing import BinaryIO
 
@@ -46,13 +47,11 @@ def _parse_date(raw: str | None) -> str | None:
 
 def _is_attachment(part: Message) -> bool:
     """Heuristic: is this part an attachment rather than a body part?"""
-    content_type = part.get_content_type()
     content_disposition = part.get_content_disposition() or ""
     if "attachment" in content_disposition:
         return True
-    if content_type in {"text/plain", "text/html", "multipart/alternative", "multipart/mixed", "multipart/related"}:
-        return False
-    return True
+    content_type = part.get_content_type()
+    return content_type not in {"text/plain", "text/html"}
 
 
 def _sanitized_filename(raw: str | None) -> str:
@@ -88,15 +87,9 @@ def _strip_style_script(html_text: str) -> str:
     return _STYLE_SCRIPT_RE.sub("", html_text)
 
 
-def _sanitize_text(text: str) -> str:
-    """Decode HTML character references to their Unicode codepoints."""
-    return html.unescape(text)
-
-
 def _sanitize_html(text: str) -> str:
     """Strip style/script blocks and decode HTML character references."""
-    text = _strip_style_script(text)
-    return _sanitize_text(text)
+    return _html.unescape(_strip_style_script(text))
 
 
 def _extract_bodies(message: Message) -> tuple[str | None, str | None]:
@@ -192,7 +185,6 @@ def parse_email(
         run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
 
     if isinstance(source, bytes):
-        from io import BytesIO
         message = message_from_binary_file(BytesIO(source), policy=policy.default)
     elif isinstance(source, (str, Path)):
         with Path(source).open("rb") as fh:
@@ -207,7 +199,7 @@ def parse_email(
     if html is not None:
         html = _sanitize_html(html)
     if plain is not None:
-        plain = _sanitize_text(plain)
+        plain = _html.unescape(plain)
     identifier = _identifier(message, uidl)
     attachments_dir = data_dir / "attachments" / run_timestamp / identifier
     attachments = _extract_attachments(message, attachments_dir)

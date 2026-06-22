@@ -20,9 +20,6 @@ class StateStore:
 
     def load(self) -> None:
         """Load processed UIDLs from disk."""
-        if not self._path.exists():
-            self._processed = set()
-            return
         try:
             text = self._path.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -40,12 +37,6 @@ class StateStore:
             return
         self._processed.add(uidl)
         self._persist()
-
-    def last_processed(self) -> str | None:
-        """Return the most recently processed UIDL, or None."""
-        if not self._processed:
-            return None
-        return max(self._processed)
 
     def _persist(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)

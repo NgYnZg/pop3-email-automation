@@ -6,9 +6,9 @@ import logging
 from datetime import datetime, timezone
 
 from .config import Config
-from .forwarder import ForwardResult, UrllibWebhookForwarder, WebhookForwarder
+from .forwarder import ForwardResult, UrllibWebhookForwarder
 from .parser import parse_email
-from .pop3 import FakePop3Client, Pop3Client, Pop3Config, Pop3LibClient
+from .pop3 import Pop3Client, Pop3LibClient
 from .state import StateStore
 
 logger = logging.getLogger(__name__)
@@ -17,17 +17,15 @@ logger = logging.getLogger(__name__)
 def create_pop3_client(config: Config) -> Pop3Client:
     """Create a production POP3 client from configuration."""
     return Pop3LibClient(
-        Pop3Config(
-            host=config.pop3_host,
-            port=config.pop3_port,
-            username=config.pop3_username,
-            password=config.pop3_password,
-            use_ssl=config.pop3_use_ssl,
-        )
+        host=config.pop3_host,
+        port=config.pop3_port,
+        username=config.pop3_username,
+        password=config.pop3_password,
+        use_ssl=config.pop3_use_ssl,
     )
 
 
-def create_forwarder(config: Config) -> WebhookForwarder:
+def create_forwarder(config: Config) -> UrllibWebhookForwarder:
     """Create a production webhook forwarder from configuration."""
     return UrllibWebhookForwarder(
         webhook_url=config.webhook_url,
@@ -39,7 +37,7 @@ def poll(
     config: Config,
     state_store: StateStore,
     pop3_client: Pop3Client,
-    forwarder: WebhookForwarder,
+    forwarder: UrllibWebhookForwarder,
     run_timestamp: str | None = None,
 ) -> list[ForwardResult]:
     """Poll the POP3 mailbox and forward new messages.

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import poplib
-from dataclasses import dataclass
 from typing import Protocol
 
 
@@ -23,29 +22,32 @@ class Pop3Client(Protocol):
         ...
 
 
-@dataclass
-class Pop3Config:
-    host: str
-    port: int
-    username: str
-    password: str
-    use_ssl: bool = True
-
-
 class Pop3LibClient:
     """Production POP3 client backed by :mod:`poplib`."""
 
-    def __init__(self, config: Pop3Config) -> None:
-        self._config = config
+    def __init__(
+        self,
+        *,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        use_ssl: bool = True,
+    ) -> None:
+        self._host = host
+        self._port = port
+        self._username = username
+        self._password = password
+        self._use_ssl = use_ssl
         self._client: poplib.POP3_SSL | poplib.POP3 | None = None
 
     def _connect(self) -> poplib.POP3_SSL | poplib.POP3:
-        if self._config.use_ssl:
-            client = poplib.POP3_SSL(self._config.host, self._config.port)
+        if self._use_ssl:
+            client = poplib.POP3_SSL(self._host, self._port)
         else:
-            client = poplib.POP3(self._config.host, self._config.port)
-        client.user(self._config.username)
-        client.pass_(self._config.password)
+            client = poplib.POP3(self._host, self._port)
+        client.user(self._username)
+        client.pass_(self._password)
         return client
 
     def uidl(self) -> dict[int, str]:

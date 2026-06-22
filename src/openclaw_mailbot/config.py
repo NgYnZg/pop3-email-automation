@@ -35,9 +35,7 @@ class Config:
 
         data_dir = os.environ.get("MAILBOT_DATA_DIR")
         if not data_dir:
-            data_dir = parser.get("storage", "data_dir", fallback=None)
-        if not data_dir:
-            data_dir = parser.get("mailbot", "data_dir", fallback="./mailbot-data")
+            data_dir = parser.get("storage", "data_dir", fallback="./mailbot-data")
 
         return cls(
             data_dir=Path(data_dir).expanduser().resolve(),

@@ -22,14 +22,12 @@ class StateStoreTests(unittest.TestCase):
         store = StateStore(self.data_dir)
         store.load()
         self.assertFalse(store.is_processed("uidl-1"))
-        self.assertIsNone(store.last_processed())
 
     def test_mark_processed_and_is_processed(self):
         store = StateStore(self.data_dir)
         store.load()
         store.mark_processed("uidl-1")
         self.assertTrue(store.is_processed("uidl-1"))
-        self.assertEqual(store.last_processed(), "uidl-1")
 
     def test_persistence_across_instances(self):
         store1 = StateStore(self.data_dir)
@@ -41,7 +39,6 @@ class StateStoreTests(unittest.TestCase):
         store2.load()
         self.assertTrue(store2.is_processed("uidl-1"))
         self.assertTrue(store2.is_processed("uidl-2"))
-        self.assertEqual(store2.last_processed(), "uidl-2")
 
     def test_mark_already_processed_is_idempotent(self):
         store = StateStore(self.data_dir)
@@ -57,7 +54,6 @@ class StateStoreTests(unittest.TestCase):
             store.mark_processed(f"uidl-{i}")
         for i in range(10):
             self.assertTrue(store.is_processed(f"uidl-{i}"))
-        self.assertEqual(store.last_processed(), "uidl-9")
 
 
 if __name__ == "__main__":
