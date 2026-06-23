@@ -31,3 +31,6 @@ mailbot-data/
 
 # Config files
 config.ini
+.env
+
+WEBHOOK_HANDOFF.md

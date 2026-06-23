@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable, Iterator
 
 from pathlib import Path
 
+from .archive import iter_archived_emls, save_raw_email
 from .config import Config
 from .forwarder import ForwardResult, UrllibWebhookForwarder
 from .parser import parse_email
@@ -60,6 +62,8 @@ def _iter_messages(
         except Exception:
             logger.exception("Failed to fetch message %d (uidl=%s)", msg_num, uidl)
             break
+
+        save_raw_email(data_dir, uidl, raw)
 
         try:
             payload = parse_email(
@@ -155,5 +159,64 @@ def poll(
         pop3_client.quit()
     except Exception:
         logger.exception("Error closing POP3 connection")
+
+    return results
+
+
+def recover(
+    config: Config,
+    state_store: StateStore,
+    forwarder: UrllibWebhookForwarder,
+    uidl: str | None = None,
+    run_timestamp: str | None = None,
+) -> list[ForwardResult]:
+    """Re-parse archived raw ``.eml`` files and forward them to the webhook.
+
+    If *uidl* is provided, only that archived message is recovered. Otherwise
+    every ``.eml`` in ``<data_dir>/archive/`` is processed in filename order.
+
+    Successfully forwarded messages are marked as processed. Failures stop the
+    loop so the operator can fix the webhook and retry.
+
+    Returns the list of forward results, one per delivery attempt.
+    """
+    if run_timestamp is None:
+        run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+
+    state_store.load()
+    results: list[ForwardResult] = []
+
+    archived = iter_archived_emls(config.data_dir)
+    if uidl is not None:
+        archived = [(u, p) for (u, p) in archived if u == uidl]
+        if not archived:
+            logger.error("No archived email found for uidl=%s", uidl)
+            return results
+
+    for archived_uidl, path in archived:
+        try:
+            payload = parse_email(
+                source=path,
+                data_dir=config.data_dir,
+                uidl=archived_uidl,
+                run_timestamp=run_timestamp,
+            )
+        except Exception:
+            logger.exception("Failed to parse archived email %s", path)
+            break
+
+        result = forwarder.send(payload)
+        results.append(result)
+
+        if result.ok:
+            state_store.mark_processed(archived_uidl)
+            logger.info("Recovered and forwarded message (uidl=%s)", archived_uidl)
+        else:
+            logger.warning(
+                "Webhook failed for recovered message (uidl=%s): %s",
+                archived_uidl,
+                result.error or f"HTTP {result.status_code}",
+            )
+            break
 
     return results

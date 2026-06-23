@@ -1,4 +1,4 @@
-"""Configuration loading for the mailbot."""
+"""Configuration loading for the OpenClaw mailbot."""
 
 from __future__ import annotations
 
@@ -22,13 +22,18 @@ class Config:
 
     @classmethod
     def load(cls, path: Path | str | None = None) -> "Config":
-        """Load configuration from an INI file and environment variables.
+        """Load configuration from an INI file, a ``.env`` file, and environment variables.
 
-        The POP3 password is intentionally read from the ``POP3_PASSWORD``
-        environment variable and is not part of the returned object.
+        Environment variables take precedence over ``.env`` values, which take
+        precedence over the INI file.
+
+        The POP3 password is intentionally read from ``POP3_PASSWORD`` and is
+        not part of the returned object.
 
         ``MAILBOT_DATA_DIR`` overrides any data_dir value from the INI file.
         """
+        _load_dotenv()
+
         parser = ConfigParser()
         if path:
             parser.read(path, encoding="utf-8")
@@ -53,3 +58,33 @@ class Config:
     def pop3_password(self) -> str:
         """Return the POP3 password from the environment."""
         return os.environ.get("POP3_PASSWORD", "")
+
+
+def _load_dotenv(dotenv_path: Path | str | None = ".env") -> None:
+    """Load KEY=VALUE pairs from a ``.env`` file into ``os.environ``.
+
+    Already-set environment variables are not overwritten. Lines starting with
+    ``#`` and blank lines are ignored. Values may be quoted with single or
+    double quotes; surrounding whitespace is stripped.
+    """
+    if dotenv_path is None:
+        return
+
+    path = Path(dotenv_path)
+    if not path.is_file():
+        return
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "=" not in stripped:
+            continue
+        key, _, value = stripped.partition("=")
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+            value = value[1:-1]
+        os.environ[key] = value

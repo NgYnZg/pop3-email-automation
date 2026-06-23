@@ -48,7 +48,7 @@ timeout_seconds = 30
 | `POP3_PASSWORD` | Password for the POP3 account. Never store this in the INI file. |
 | `MAILBOT_DATA_DIR` | Optional override for the data directory configured in `storage.data_dir`. |
 
-Example for a single run:
+Set them with `export` for a single run:
 
 ```bash
 export POP3_PASSWORD="super-secret"
@@ -56,12 +56,20 @@ export MAILBOT_DATA_DIR="/var/lib/openclaw-mailbot"
 uv run openclaw-mailbot --config config.example.ini poll
 ```
 
+Or create a `.env` file in the project root:
+
+```bash
+cp .env.example .env
+# edit .env with your POP3_PASSWORD and MAILBOT_DATA_DIR
+```
+
+The mailbot loads `.env` automatically. Already-set environment variables take precedence over `.env` values.
+
 ## Testing the POP3 connection and parser before enabling the webhook
 
 The `test` subcommand connects to the configured POP3 server, parses each new message, prints the JSON payload to stdout, and marks messages as processed. It does **not** forward to the OpenClaw webhook and does **not** require `webhook_url`.
 
 ```bash
-export POP3_PASSWORD="super-secret"
 uv run openclaw-mailbot --config config.example.ini test
 ```
 
@@ -73,6 +81,22 @@ This is useful for verifying:
 - Attachment saving paths.
 
 Because parsed messages are marked as processed, a second `test` run will not re-fetch the same messages. Delete `<data_dir>/state.json` to re-test from scratch.
+
+## Archiving and recovery
+
+Every message fetched from the POP3 server is saved as a raw `.eml` file under `<data_dir>/archive/<uidl>.eml` before parsing or forwarding. This provides a local backup and makes failed webhook deliveries recoverable.
+
+If a webhook delivery fails, the message is left unprocessed and can be re-forwarded later from the local archive:
+
+```bash
+# Re-forward all archived emails
+uv run openclaw-mailbot --config config.ini recover
+
+# Re-forward a single archived email by UIDL
+uv run openclaw-mailbot --config config.ini recover --uidl <uidl>
+```
+
+Successfully recovered messages are marked as processed. Failures stop the loop so you can fix the webhook and retry.
 
 ## Cron setup
 
@@ -113,5 +137,6 @@ uv run openclaw-mailbot --config config.example.ini test
 - `src/openclaw_mailbot/pop3.py` — POP3 transport and client.
 - `src/openclaw_mailbot/state.py` — UIDL persistence.
 - `src/openclaw_mailbot/forwarder.py` — Webhook POST.
-- `src/openclaw_mailbot/poll.py` — Poll orchestration.
+- `src/openclaw_mailbot/poll.py` — Poll orchestration and recovery.
+- `src/openclaw_mailbot/archive.py` — Raw `.eml` archiving and archive iteration.
 - `src/openclaw_mailbot/cli.py` — Command-line entry point.
