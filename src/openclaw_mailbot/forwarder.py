@@ -20,21 +20,30 @@ class ForwardResult:
 class UrllibWebhookForwarder:
     """Forwarder that POSTs JSON via :mod:`urllib`."""
 
-    def __init__(self, webhook_url: str, timeout_seconds: float = 30.0) -> None:
+    def __init__(
+        self,
+        webhook_url: str,
+        timeout_seconds: float = 30.0,
+        bearer_token: str | None = None,
+    ) -> None:
         self._webhook_url = webhook_url
         self._timeout_seconds = timeout_seconds
+        self._bearer_token = bearer_token
 
     def send(self, payload: dict) -> ForwardResult:
         """POST *payload* as JSON to the webhook URL."""
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json",
+            "User-Agent": "openclaw-mailbot/0.1.0",
+        }
+        if self._bearer_token:
+            headers["Authorization"] = f"Bearer {self._bearer_token}"
         request = urllib.request.Request(
             self._webhook_url,
             data=body,
-            headers={
-                "Content-Type": "application/json; charset=utf-8",
-                "Accept": "application/json",
-                "User-Agent": "openclaw-mailbot/0.1.0",
-            },
+            headers=headers,
             method="POST",
         )
         try:

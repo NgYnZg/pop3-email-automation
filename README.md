@@ -60,7 +60,7 @@ Or create a `.env` file in the project root:
 
 ```bash
 cp .env.example .env
-# edit .env with your POP3_PASSWORD and MAILBOT_DATA_DIR
+# edit .env with your POP3_PASSWORD, MAILBOT_DATA_DIR, and WEBHOOK_BEARER_TOKEN
 ```
 
 The mailbot loads `.env` automatically. Already-set environment variables take precedence over `.env` values.

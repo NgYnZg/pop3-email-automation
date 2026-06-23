@@ -8,8 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterator
 
-from pathlib import Path
-
 from .archive import iter_archived_emls, save_raw_email
 from .config import Config
 from .forwarder import ForwardResult, UrllibWebhookForwarder
@@ -36,6 +34,7 @@ def create_forwarder(config: Config) -> UrllibWebhookForwarder:
     return UrllibWebhookForwarder(
         webhook_url=config.webhook_url,
         timeout_seconds=config.webhook_timeout_seconds,
+        bearer_token=config.webhook_bearer_token,
     )
 
 

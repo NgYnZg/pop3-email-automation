@@ -55,6 +55,11 @@ class Config:
         )
 
     @property
+    def webhook_bearer_token(self) -> str:
+        """Return the webhook bearer token from the environment."""
+        return os.environ.get("WEBHOOK_BEARER_TOKEN", "")
+
+    @property
     def pop3_password(self) -> str:
         """Return the POP3 password from the environment."""
         return os.environ.get("POP3_PASSWORD", "")
